@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
-import isUrl from 'is-valid-http-url';
+import validUrl from 'valid-url';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
 (async () => {
@@ -36,7 +36,8 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   app.get( "/filteredimage", async ( req: Request, res: Response ) => {
     const imageUrl = req.query.image_url;
 
-    if (!isUrl(imageUrl)) {
+    if (!validUrl.isUri(imageUrl)) {
+      console.log(validUrl.isHttpUri(imageUrl));
       return res.status(400)
                 .send({message: 'Image URL is required or malformed'});
     }
