@@ -1,5 +1,6 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
+import isUrl from 'is-valid-http-url';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
 (async () => {
@@ -30,12 +31,34 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   /**************************************************************************** */
 
   //! END @TODO1
+  // Applies a greyscale feature to the image linked
+  // in the URL provided by the caller
+  app.get( "/filteredimage", async ( req: Request, res: Response ) => {
+    const imageUrl = req.query.image_url;
+
+    if (!isUrl(imageUrl)) {
+      return res.status(400)
+                .send({message: 'Image URL is required or malformed'});
+    }
+
+
+    const image = await filterImageFromURL(imageUrl);
+    
+    res.status(200)
+       .sendFile(image, {}, async (err) => {
+          if (err) {
+            throw new Error('The file transfer was intruppted due to a server error'); 
+          }
+
+          await deleteLocalFiles([image]);
+       });
+  } );
   
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
-    res.send("try GET /filteredimage?image_url={{}}")
-  } );
+  app.get( "/",  ( req: Request, res: Response ) => {
+    res.send("try GET /filteredimage?image_url={{}}");
+  });
   
 
   // Start the Server
